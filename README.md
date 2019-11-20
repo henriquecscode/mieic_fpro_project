@@ -1,21 +1,21 @@
-# Projeto \<nome\>
+# Projeto Taz
 ### FPRO/MIEIC, 2019/20
-### \Henrique Costa Sousa up201906681
-### \<1MIEIC02\> 
+### Henrique Costa Sousa up201906681
+### 1MIEIC02
 
 #### Objetivo
 
-1. \<Criar um clone do clássico Taz em Pygame\>
+1. Criar um clone do clássico Taz em Pygame
 
-2. \<Adicionalmente, integrar um algoritmo de deep learning para permitir uma diferente interatividade com o jogador\>
+2. Adicionalmente, integrar um algoritmo de deep learning para permitir uma diferente interatividade com o jogador
 
 #### Repositório de código
 
-1) Link para o repositório do GitHub: \<https://github.com/henriquecscode/mieic_fpro_project\>
+1) Link para o repositório do GitHub: https://github.com/henriquecscode/mieic_fpro_project
 
 #### Descrição
 
-\<É um jogo em que o objetivo da personagem é comer os hamburgueres e fugir das bombas. Para isso pode movimentar-se para cima ou para baixo na filas e descolar-se nestas horizontalmente.\>
+É um jogo em que o objetivo da personagem é comer os hamburgueres e fugir das bombas. Para isso pode movimentar-se para cima ou para baixo na filas e descolar-se nestas horizontalmente.
 
 #### UI
 
@@ -34,4 +34,4 @@ https://github.com/henriquecscode/mieic_fpro_project/blob/master/ui.PNG
 5. Aplicar um algoritmo de deep learning como forma alternativa de controlar o objeto
 
 
-\<date\>
+20/11/2019
