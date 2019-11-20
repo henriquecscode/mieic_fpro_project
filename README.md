@@ -1,34 +1,25 @@
 # Projeto \<nome\>
 ### FPRO/MIEIC, 2019/20
-### \<Fulano de Tal (up2019xxxxx@fe.up.pt)\>
-### \<1MIEIC0X\> 
+### \Henrique Costa Sousa up201906681
+### \<1MIEIC02\> 
 
 #### Objetivo
 
-1. \<Criar um clone do clássico Sokoban em Pygame\>
+1. \<Criar um clone do clássico Taz em Pygame\>
 
-2. \<Em alternativa... do clássico x em Pygame\>
+2. \<Adicionalmente, integrar um algoritmo de deep learning para permitir uma diferente interatividade com o jogador\>
 
 #### Repositório de código
 
-1) Link para o repositório do GitHub: \<https://github.com/fpro-feup/public\>
-
-2) Adicionar o prof. da Unidade (ver lista em baixo) e o "Lord of the Game" (aka Ricardo Cruz):
-
-- https://github.com/fernandocassola
-- https://github.com/rpmcruz
-- https://github.com/jlopes60
-- https://github.com/rcamacho
+1) Link para o repositório do GitHub: \<https://github.com/henriquecscode/mieic_fpro_project\>
 
 #### Descrição
 
-\<É um jogo de puzzle em que o objetivo do jogo é empurrar caixotes para um sítio indicado. 
-Para empurrar o caixote é preciso ir ao outro lado empurrá-lo. 
-Ou seja, se ele ficar junto à parede, a pessoa precisa de reiniciar o jogo. Estamos a utilizar os níveis do XSokoban.\>
+\<É um jogo em que o objetivo da personagem é comer os hamburgueres e fugir das bombas. Para isso pode movimentar-se para cima ou para baixo na filas e descolar-se nestas horizontalmente.\>
 
 #### UI
 
-![UI](https://github.com/fpro-feup/public/blob/master/assigns/ui.png)
+https://github.com/henriquecscode/mieic_fpro_project/blob/master/ui.PNG
 
 ### Pacotes
 
@@ -36,9 +27,11 @@ Ou seja, se ele ficar junto à parede, a pessoa precisa de reiniciar o jogo. Est
 
 #### Tarefas
 
-1. carregar os níveis
-1. desenhar a matriz do nível
-1. ler teclas e mover as peças
-2. verificar se jogador chegou ao fim do nível
+1. Criar o ecrã de jogo
+2. Criar um objeto controlável
+3. Mover o objeto
+4. Criar os objetos de pontuação e de eliminação de forma dinâmica
+5. Aplicar um algoritmo de deep learning como forma alternativa de controlar o objeto
+
 
 \<date\>
