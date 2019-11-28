@@ -1,6 +1,7 @@
 import pygame
 from config import win_width, win_height, max_fps
-from classes import Taz, GameScreen
+from classes import Taz, Game
+
 
 def init():
     pygame.init()
@@ -10,13 +11,14 @@ def init():
 
     return win, clock
 
+
 def loop(win, clock):
-    win.fill((0,0,0))
+    win.fill((0, 0, 0))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-        
+
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
         taz.move_left()
@@ -27,15 +29,16 @@ def loop(win, clock):
     if keys[pygame.K_DOWN]:
         taz.move_down()
 
-    taz.draw()
-    screen.draw()
+    taz.loop()
+    game.loop()
     pygame.display.flip()
+
 
 win, clock = init()
 taz = Taz(win, clock)
-screen = GameScreen(win)
+game = Game(win, clock)
 while True:
     clock.tick(max_fps)
     loop(win, clock)
 
-#pygame.quit()
+# pygame.quit()
