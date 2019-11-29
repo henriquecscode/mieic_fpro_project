@@ -39,9 +39,20 @@ class Movable:
         pygame.draw.rect(self.win, self.color, ((
             self.x - self.width / 2, self.y - self.height / 2), (self.width, self.height)))
 
-    def loop(self):
+    def collision(self, collide):
+        if self.y != collide.y:
+            return True
+
+        if ((collide.x - collide.width / 2) < (self.x + self.width/2) < (collide.x + collide.width / 2)) or ((collide.x - collide.width / 2) < (self.x - self.width / 2) < (collide.x + collide.width / 2)):
+            return False
+
+        return True
+
+    def loop(self, collide):
         self.draw()
-        return self.move()
+        not_of_bounds = self.move()
+        not_hit = self.collision(collide)
+        return not_of_bounds and not_hit
 
 
 class Obstacle(Movable):
@@ -185,7 +196,7 @@ class Game:
 
     def spawn(self):
 
-        if self.event_time_elapsed > self.event_timer :
+        if self.event_time_elapsed > self.event_timer:
 
             self.event_creating = False
             # We are going to create a event
@@ -240,10 +251,10 @@ class Game:
 
     # Could probably join these two, semantically it is cleaner this way though
     def loop_rewards(self):
-        self.rewards = [x for x in self.rewards if x.loop()]
+        self.rewards = [x for x in self.rewards if x.loop(self.taz)]
 
     def loop_obstacles(self):
-        self.obstacles = [x for x in self.obstacles if x.loop()]
+        self.obstacles = [x for x in self.obstacles if x.loop(self.taz)]
         # Simultaneously draws, moves and deletes the object if need be
 
 
