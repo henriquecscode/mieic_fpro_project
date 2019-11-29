@@ -27,10 +27,13 @@ https://github.com/henriquecscode/mieic_fpro_project/blob/master/ui.PNG
 
 #### Tarefas
 
-1. Criar o ecrã de jogo
-2. Criar um objeto controlável
-3. Mover o objeto
-4. Criar os objetos de pontuação e de eliminação de forma dinâmica
+1. Criar o ecrã de jogo (100%)
+2. Criar um objeto controlável (100%)
+3. Mover o objeto (100%)
+4. Criar os objetos de pontuação e de eliminação de forma dinâmica (100%)
+5. Adicionar pontuação (100%)
+6. Remover jogador com objetos de eliminação (50%)
+7. Para jogo depois de jogador morrer
 5. Aplicar um algoritmo de deep learning como forma alternativa de controlar o objeto
 
 
