@@ -1,4 +1,5 @@
 import pygame
+import random
 from config import win_width, win_height, max_fps, line_height, line_total_height, line_width
 
 
@@ -10,15 +11,17 @@ def init():
 
     return win, clock
 
+
 class Movable:
     min_x = win_width / 2 - line_width / 2 - 20
-    max_x = win_width /2 - line_width / 2 + 20
+    max_x = win_width / 2 + line_width / 2 + 20
     min_y = win_height / 2 - line_total_height / 2
 
     width = 30
     height = 30
 
-    velocity = 10
+    velocity = 2
+
     def __init__(self, win, x, y, color, direction=1, difficulty=1):
         self.win = win
         self.x = x
@@ -29,31 +32,33 @@ class Movable:
 
     def move(self):
         self.x += self.direction * self.velocity * self.difficulty ** 0.5
-
-        return self.x < self.min_x or self.x > self.max_x
+        return not(self.x < self.min_x or self.x > self.max_x)
         # If the return value is true we can delete the object
 
     def draw(self):
-        pygame.draw.rect(self.win, self.color, (self.x - self.width / 2, self.y - self.height / 2), (self.width, self.height))
+        pygame.draw.rect(self.win, self.color, ((
+            self.x - self.width / 2, self.y - self.height / 2), (self.width, self.height)))
 
     def loop(self):
         self.draw()
         return self.move()
 
+
 class Obstacle(Movable):
 
     color = (100, 100, 100)
 
-    def __init__(self, win, x, y, direction, difficulty):
+    def __init__(self, win, x, y, direction, difficulty=1):
         super().__init__(win, x, y, self.color, direction, difficulty)
+
 
 class Reward(Movable):
 
     color = (0, 100, 100)
-    
-    def __init__(self, win, x, y, direction, difficulty):
+
+    def __init__(self, win, x, y, direction, difficulty=1):
         super().__init__(win, x, y, self.color, direction, difficulty)
-    
+
 
 class Taz:
     min_x = win_width / 2 - line_width / 2
@@ -118,40 +123,104 @@ class Game:
     lines_number = line_total_height // line_height
     min_x = win_width / 2 - line_width / 2 - 20
     max_x = win_width / 2 + line_width / 2 + 20
-    min_y = win_height / 2 - line_total_height / \
-        2 + 16  # Shift of 18 to lay beneath taz
+    min_y = win_height / 2 - line_total_height / 2
+    line_min_y = min_y + 16
     line_height = line_height
+
     obstacles = []
     rewards = []
 
     color = (255, 0, 0)
 
+    # Deal with spawning of movable objects
+    event_timer = 4000
+    event_time_elapsed = 3000
+    event_creating = True
+    event_chance = 0.05
+    obstacle_only_chance = 0.2
+    reward_only_chance = 0.6
+    mixed_chance = 0.2
+    type_chance = [obstacle_only_chance, reward_only_chance, mixed_chance]
+    type_chance = [0, obstacle_only_chance,
+                   obstacle_only_chance + reward_only_chance]  # Temporary
+    #type_chance = [type_chance[:i] for i in range(len(type_chance)) ]
+    mixed_obstacle_chance = 0.5
+    mixed_reward_chance = 0.5
+    mixed_type_chance = [mixed_obstacle_chance, mixed_reward_chance]
+    mixed_type_chance = [0, mixed_obstacle_chance]
+    # mixed_type_chance = [sum(mixed_type_chance[:i]) for i in range(len(mixed_type_chance))]
+
     def __init__(self, win, clock):
         self.win = win
         self.clock = clock
-        self.font = pygame.font.SysFont('comicsans', 30, True) #(font, size, bold, italicized)
+        # (font, size, bold, italicized)
+        self.font = pygame.font.SysFont('comicsans', 30, True)
         self.taz = Taz(win, clock)
 
     def draw(self):
         for i in range(self.lines_number):
-            pygame.draw.line(self.win, self.color, (self.min_x, self.min_y + i * self.line_height),
-                             (self.max_x, self.min_y + i * self.line_height))
+            pygame.draw.line(self.win, self.color, (self.min_x, self.line_min_y + i * self.line_height),
+                             (self.max_x, self.line_min_y + i * self.line_height))
 
-    def loop(self):   
+    def loop(self):
         while True:
             self.clock.tick(max_fps)
+            self.event_time_elapsed += self.clock.get_time()
             self.win.fill((0, 0, 0))
 
-            self.events()
+            self.events()  # keys handling
+            self.spawn()  # Movable spawning
 
-            text =self.font.render(str(pygame.time.get_ticks()), 1, (255, 255, 255))
-            self.win.blit(text, (0,0))
+            # Time elapsed [DEBUGGING]
+            text = self.font.render(
+                str(pygame.time.get_ticks()), 1, (255, 255, 255))
+            self.win.blit(text, (0, 0))
+
             self.loop_rewards()
             self.loop_obstacles()
             self.taz.loop()
-            self.draw()
+            self.draw()  # Platforms draw
 
             pygame.display.flip()
+
+    def spawn(self):
+
+        if self.event_time_elapsed > self.event_timer :
+
+            self.event_creating = False
+            # We are going to create a event
+            rand = random.random()
+            if 0 <= rand <= self.type_chance[1]:
+                # We are going to have obstacle only
+                for i in range(self.lines_number):
+                    direction = -1 if random.random() < 0.5 else 1
+                    x = win_width / 2 + -1 * direction * line_width / 2
+                    y = self.min_y + i * self.line_height
+
+                    self.obstacles.append(Obstacle(self.win, x, y, direction))
+
+            elif self.type_chance[1] < rand <= self.type_chance[2]:
+                # We are going to have reward only
+                for i in range(self.lines_number):
+                    direction = -1 if random.random() < 0.5 else 1
+                    x = win_width / 2 + -1 * direction * line_width / 2
+                    y = self.min_y + i * self.line_height
+
+                    self.rewards.append(Reward(self.win, x, y, direction))
+
+            else:
+                for i in range(self.lines_number):
+                    direction = -1 if random.random() < 0.5 else 1
+                    x = win_width / 2 + -1 * direction * line_width / 2
+                    y = self.min_y + i * self.line_height
+                    rand = random.random()
+                    if rand < self.mixed_obstacle_chance:
+                        self.obstacles.append(
+                            Obstacle(self.win, x, y, direction))
+                    else:
+                        self.rewards.append(Reward(self.win, x, y, direction))
+                # We are going to have mixed
+            self.event_time_elapsed = 0
 
     def events(self):
 
@@ -171,12 +240,11 @@ class Game:
 
     # Could probably join these two, semantically it is cleaner this way though
     def loop_rewards(self):
-        self.rewards = [x for x in self.rewards if loop(x)]
-    
-    def loop_obstacles(self):
-        self.obstacles = [x for x in self.obstacles if loop(x)]
-        # Simultaneously draws, moves and deletes the object if need be
+        self.rewards = [x for x in self.rewards if x.loop()]
 
+    def loop_obstacles(self):
+        self.obstacles = [x for x in self.obstacles if x.loop()]
+        # Simultaneously draws, moves and deletes the object if need be
 
 
 win, clock = init()
