@@ -40,6 +40,10 @@ class Movable:
             self.x - self.width / 2, self.y - self.height / 2), (self.width, self.height)))
 
     def collision(self, collide):
+
+        if not collide.running:
+            return True
+
         if self.y != collide.y:
             return True
 
@@ -62,13 +66,25 @@ class Obstacle(Movable):
     def __init__(self, win, x, y, direction, difficulty=1):
         super().__init__(win, x, y, self.color, direction, difficulty)
 
+    def loop(self, collide):
+        use = super().loop(collide)
+        if not use:
+            collide.running = False
+        return use
 
 class Reward(Movable):
 
     color = (0, 100, 100)
+    score = 50
 
     def __init__(self, win, x, y, direction, difficulty=1):
         super().__init__(win, x, y, self.color, direction, difficulty)
+
+    def loop(self, collide):
+        use = super().loop(collide)
+        if not use:
+            collide.score += self.score
+        return use
 
 
 class Taz:
@@ -83,6 +99,9 @@ class Taz:
     width = 30
     height = 30
     color = (255, 0, 0)
+
+    score = 0
+    running = True
 
     # So it doesn't automatically jump lines
     up_thres = 10
@@ -126,7 +145,8 @@ class Taz:
             self.x - self.width/2, self.y - self.height/2), (self.width, self.height)))
 
     def loop(self):
-        self.draw()
+        if self.running:
+            self.draw()
 
 
 class Game:
@@ -182,10 +202,9 @@ class Game:
             self.events()  # keys handling
             self.spawn()  # Movable spawning
 
-            # Time elapsed [DEBUGGING]
-            text = self.font.render(
-                str(pygame.time.get_ticks()), 1, (255, 255, 255))
-            self.win.blit(text, (0, 0))
+            # Score
+            score = self.font.render(str(self.taz.score), 1, (255, 255, 255))
+            self.win.blit(score, (0,0))
 
             self.loop_rewards()
             self.loop_obstacles()
@@ -252,6 +271,7 @@ class Game:
     # Could probably join these two, semantically it is cleaner this way though
     def loop_rewards(self):
         self.rewards = [x for x in self.rewards if x.loop(self.taz)]
+        # The else clause needs to be another type of objects that disappears after a certain time, to replicate the original game
 
     def loop_obstacles(self):
         self.obstacles = [x for x in self.obstacles if x.loop(self.taz)]
