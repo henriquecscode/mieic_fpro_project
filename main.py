@@ -1,10 +1,9 @@
 import pygame
 import random
 from config import win_width, win_height, max_fps, line_height, line_total_height, line_width
-
+pygame.init()
 
 def init():
-    pygame.init()
     win = pygame.display.set_mode((win_width, win_height))
     pygame.display.set_caption("TAZ")
     clock = pygame.time.Clock()
@@ -150,8 +149,78 @@ class Taz:
         if self.running:
             self.draw()
 
-
 class Game:
+    scenes = {}
+    scene = None
+    #scenes = {'game': None, 'menu': None }
+
+    def __init__(self, win, clock):
+        self.win = win
+        self.clock = clock
+        self.scenes['game'] = GameScene(win,clock, self.scene_changer_fac)
+        self.scenes['menu'] = MenuScene(win,clock, self.scene_changer_fac)
+        self.scene = self.scenes['menu']
+
+    def loop(self):
+        while True:
+            
+            self.clock.tick(max_fps)
+            self.scene.loop()
+
+            # Exit condition
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return True
+
+            pygame.display.flip()
+
+    def scene_changer_fac(self, name):
+        # This function is not working as it should
+        # Probable reason: Child cannot access the self that is passed in the function defined here so it is set to None
+        # Best solution? Pass self.scenes and self.scene to the child
+        # It is only a reference so it is not that heavy in terms of performance I guess
+        scenes = self.scenes
+        scene = self.scene
+        def scene_changer(name):
+            self.scene = self.scenes[name]
+        return scene_changer(name) 
+
+    def test(self):
+        self.scene = self.scenes['game']
+
+class MenuScene:
+
+    buttons = {}
+    def __init__(self, win, clock, scene_changer_fac):
+        change_to_game_scene = scene_changer_fac('game')
+        play_button = Button(win, 'Play', pygame.font.SysFont('comicsans', 30, True), change_to_game_scene)
+        self.buttons['game'] = play_button
+        self.choose_button('game')
+
+    def choose_button(self, name):
+        self.button = self.buttons[name]
+        self.highlight(name)
+
+    def highlight(self,name):
+        for key in self.buttons:
+            self.buttons[key].highlight = False
+        self.buttons[name].highlight = True
+
+    def loop(self):
+
+        self.events()
+
+        for key in self.buttons:
+            self.buttons[key].draw()
+
+    def events(self):
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_RETURN] or keys[pygame.K_SPACE]:
+            self.button.select()
+
+
+class GameScene:
 
     lines_number = line_total_height // line_height
     min_x = win_width / 2 - line_width / 2 - 20
@@ -178,7 +247,7 @@ class Game:
     mixed_type_chance = [0, mixed_obstacle_chance]
     # mixed_type_chance = [sum(mixed_type_chance[:i]) for i in range(len(mixed_type_chance))]
 
-    def __init__(self, win, clock):
+    def __init__(self, win, clock, scene_changer):
         self.win = win
         self.clock = clock
         # (font, size, bold, italicized)
@@ -198,26 +267,20 @@ class Game:
                              (self.max_x, self.line_min_y + i * self.line_height))
 
     def loop(self):
-        while True:
-            self.clock.tick(max_fps)
             self.event_time_elapsed += self.clock.get_time()
             self.win.fill((0, 0, 0))
 
-            end = self.events()  # keys handling
-            if end:
-                return
+            self.events()  # keys handling
             self.spawn()  # Movable spawning
 
             # Score
-            score = self.font.render(str(self.taz.score), 1, (255, 255, 255))
+            score = self.font.render(str(self.taz.score), True, (255, 255, 255))
             self.win.blit(score, (0, 0))
 
             self.loop_rewards()
             self.loop_obstacles()
             self.taz.loop()
             self.draw()  # Platforms draw
-
-            pygame.display.flip()
 
     def spawn(self):
         if not self.taz.running:
@@ -259,11 +322,6 @@ class Game:
 
     def events(self):
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                return True
-
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             self.taz.move_left()
@@ -288,6 +346,45 @@ class Game:
         # Simultaneously draws, moves and deletes the object if need be
 
 
+class Button:
+
+    def __init__(self, win, text, font = pygame.font.SysFont('comicsans', 30, True), function=None, highlight = False, x = win_width/4, y = 50, width = win_width/2, height = 50, text_color = (255, 255, 255), color = (0, 9, 151), high_text_color = (255, 255, 255), high_color = (100,100,100)):
+        self.win = win
+        self.function = function
+        self.highlight = highlight
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.color = color
+        self.high_color = high_color
+        self.highlight_text, self.lowlight_text, self.text_width, self.text_height = self.render(text, font, high_text_color, text_color)
+
+    def render(self, text, font, high_text_color, text_color):
+        if font:
+            self.font = font
+        highlight_text = self.font.render(text, True, high_text_color)
+        lowlight_text = self.font.render(text, True, text_color)
+        text_width, text_height = self.font.size(text)
+        return highlight_text, lowlight_text, text_width, text_height
+
+    def draw(self):
+
+        text_x, text_y = self.x + self.width/2 - self.text_width/2, self.y + self.height/2 - self.text_height/2
+        if self.highlight:
+            color = self.high_color
+            text = self.highlight_text
+        else:
+            color = self.color
+            text = self.lowlight_text
+
+        pygame.draw.rect(self.win, color, ((self.x, self.y), (self.width, self.height)))
+        win.blit(text, (text_x, text_y))
+
+    def select(self):
+        self.function()
+
 win, clock = init()
-game = Game(win, clock)
+game = Game(win,clock)
 game.loop()
+pygame.quit()
