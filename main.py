@@ -61,7 +61,7 @@ class Movable:
 
 class Obstacle(Movable):
 
-    color = (100, 100, 100)
+    color = (255, 100, 100)
 
     def __init__(self, win, x, y, direction, difficulty=1):
         super().__init__(win, x, y, self.color, direction, difficulty)
@@ -72,9 +72,10 @@ class Obstacle(Movable):
             collide.running = False
         return use
 
+
 class Reward(Movable):
 
-    color = (0, 100, 100)
+    color = (255, 255, 0)
     score = 50
 
     def __init__(self, win, x, y, direction, difficulty=1):
@@ -100,21 +101,22 @@ class Taz:
     height = 30
     color = (255, 0, 0)
 
-    score = 0
-    running = True
-
     # So it doesn't automatically jump lines
     up_thres = 10
     down_thres = 10
 
     def __init__(self, win, clock):
         self.win = win
+        self.clock = clock
+        self.reset()
+
+    def reset(self):
         self.x = win_width / 2
         self.y = win_height / 2
-        self.clock = clock
-
         self.up_request = 0
         self.down_request = 0
+        self.running = True
+        self.score = 0
 
     def move_up(self):
         self.up_request += 1
@@ -158,16 +160,11 @@ class Game:
     line_min_y = min_y + 16
     line_height = line_height
 
-    obstacles = []
-    rewards = []
-
     color = (255, 0, 0)
 
     # Deal with spawning of movable objects
     event_timer = 4000
     event_time_elapsed = 3000
-    event_creating = True
-    event_chance = 0.05
     obstacle_only_chance = 0.2
     reward_only_chance = 0.6
     mixed_chance = 0.2
@@ -187,6 +184,13 @@ class Game:
         # (font, size, bold, italicized)
         self.font = pygame.font.SysFont('comicsans', 30, True)
         self.taz = Taz(win, clock)
+        self.reset()
+
+    def reset(self):
+        self.obstacles = []
+        self.rewards = []
+        self.event_time_elapsed = 3000
+        self.taz.reset()
 
     def draw(self):
         for i in range(self.lines_number):
@@ -199,12 +203,14 @@ class Game:
             self.event_time_elapsed += self.clock.get_time()
             self.win.fill((0, 0, 0))
 
-            self.events()  # keys handling
+            end = self.events()  # keys handling
+            if end:
+                return
             self.spawn()  # Movable spawning
 
             # Score
             score = self.font.render(str(self.taz.score), 1, (255, 255, 255))
-            self.win.blit(score, (0,0))
+            self.win.blit(score, (0, 0))
 
             self.loop_rewards()
             self.loop_obstacles()
@@ -214,10 +220,9 @@ class Game:
             pygame.display.flip()
 
     def spawn(self):
-
+        if not self.taz.running:
+            return
         if self.event_time_elapsed > self.event_timer:
-
-            self.event_creating = False
             # We are going to create a event
             rand = random.random()
             if 0 <= rand <= self.type_chance[1]:
@@ -257,6 +262,7 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
+                return True
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
@@ -267,6 +273,10 @@ class Game:
             self.taz.move_up()
         if keys[pygame.K_DOWN]:
             self.taz.move_down()
+
+        if keys[pygame.K_RETURN] or keys[pygame.K_SPACE]:
+            if not self.taz.running:
+                self.reset()
 
     # Could probably join these two, semantically it is cleaner this way though
     def loop_rewards(self):
