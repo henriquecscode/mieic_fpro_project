@@ -56,7 +56,7 @@ class Movable:
         self.draw()
         not_of_bounds = self.move()
         not_hit = self.collision(collide)
-        return not_of_bounds and not_hit
+        return not_of_bounds, not_hit
 
 
 class Obstacle(Movable):
@@ -67,10 +67,10 @@ class Obstacle(Movable):
         super().__init__(win, x, y, self.color, direction, difficulty)
 
     def loop(self, collide):
-        use = super().loop(collide)
-        if not use:
+        not_of_bounds, not_hit = super().loop(collide)
+        if not not_hit:
             collide.running = False
-        return use
+        return not_of_bounds and not_hit
 
 
 class Reward(Movable):
@@ -82,10 +82,10 @@ class Reward(Movable):
         super().__init__(win, x, y, self.color, direction, difficulty)
 
     def loop(self, collide):
-        use = super().loop(collide)
-        if not use:
+        not_of_bounds, not_hit = super().loop(collide)
+        if not not_hit:
             collide.score += self.score
-        return use
+        return not_of_bounds and not_hit
 
 
 class Taz:
