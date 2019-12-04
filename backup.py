@@ -210,7 +210,7 @@ class Game:
         self.win = win
         self.clock = clock
         self.scenes['game'] = GameScene(
-            win, clock, self.scene_changer_fac, *args)
+            win, clock, self.scene_changer_fac, args[0])
         self.scenes['menu'] = MenuScene(win, clock, self.scene_changer_fac)
         self.scene = self.scenes['game']
 
@@ -446,6 +446,6 @@ class Button:
 
 
 win, clock, sprites = init()
-game = Game(win, clock, *sprites)
+game = Game(win, clock, [sprites])
 game.loop()
 pygame.quit()
