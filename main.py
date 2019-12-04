@@ -3,41 +3,49 @@ import random
 from config import win_width, win_height, max_fps, line_height, line_total_height, line_width
 pygame.init()
 
+
 def init():
     win = pygame.display.set_mode((win_width, win_height))
     pygame.display.set_caption("TAZ")
     clock = pygame.time.Clock()
+    spritesheet_taz = Spritesheet('assets/taz.png')
+    sprites_taz = spritesheet_taz.load_strip(((516, 338, 388/6, 90)), 6, -1)
 
-    return win, clock
+    return win, clock, sprites_taz
 
-class Spritesheet(object): # https://www.pygame.org/wiki/Spritesheet
+
+class Spritesheet(object):  # https://www.pygame.org/wiki/Spritesheet
     def __init__(self, filename):
         try:
             self.sheet = pygame.image.load(filename).convert()
         except pygame.error as message:
-            print ('Unable to load spritesheet image:' + message)
+            print('Unable to load spritesheet image:' + message)
             raise SystemExit
     # Load a specific image from a specific rectangle
-    def image_at(self, rectangle, colorkey = None):
+
+    def image_at(self, rectangle, colorkey=None):
         "Loads image from x,y,x+offset,y+offset"
         rect = pygame.Rect(rectangle)
         image = pygame.Surface(rect.size).convert()
         image.blit(self.sheet, (0, 0), rect)
         if colorkey is not None:
             if colorkey is -1:
-                colorkey = image.get_at((0,0))
+                colorkey = image.get_at((0, 0))
             image.set_colorkey(colorkey, pygame.RLEACCEL)
         return image
     # Load a whole bunch of images and return them as a list
-    def images_at(self, rects, colorkey = None):
-        "Loads multiple images, supply a list of coordinates" 
+
+    def images_at(self, rects, colorkey=None):
+        "Loads multiple images, supply a list of coordinates"
         return [self.image_at(rect, colorkey) for rect in rects]
     # Load a whole strip of images
-    def load_strip(self, rect, image_count, colorkey = None):
+
+    def load_strip(self, rect, image_count, colorkey=None):
         "Loads a strip of images and returns them as a list"
         tups = [(rect[0]+rect[2]*x, rect[1], rect[2], rect[3])
                 for x in range(image_count)]
         return self.images_at(tups, colorkey)
+
 
 class Movable:
     min_x = win_width / 2 - line_width / 2 - 20
@@ -124,18 +132,22 @@ class Taz:
     line_height = line_height
 
     velocity = 10
-    width = 30
-    height = 30
+    width = 40
+    height = 50
     color = (255, 0, 0)
 
     # So it doesn't automatically jump lines
     up_thres = 10
     down_thres = 10
 
-    def __init__(self, win, clock):
+    tick_per_sprites = 3
+
+    def __init__(self, win, clock, sprites):
         self.win = win
         self.clock = clock
         self.reset()
+        self.sprites = self.rescale_sprites(sprites)
+        self.sprites_count = 0
 
     def reset(self):
         self.x = win_width / 2
@@ -170,28 +182,37 @@ class Taz:
             self.x += self.velocity
 
     def draw(self):
-        pygame.draw.rect(self.win, self.color, ((
-            self.x - self.width/2, self.y - self.height/2), (self.width, self.height)))
+        win.blit(self.sprites[self.sprites_count //
+                              self.tick_per_sprites], (self.x - self.width/2, self.y - self.height/2))
+        self.sprites_count = (self.sprites_count +
+                              1) % (len(self.sprites) * self.tick_per_sprites)
+
+    def rescale_sprites(self, sprites):
+        return [pygame.transform.scale(x, (self.width, self.height)) for x in sprites]
 
     def loop(self):
         if self.running:
             self.draw()
+
 
 class Game:
     scenes = {}
     scene = None
     #scenes = {'game': None, 'menu': None }
 
-    def __init__(self, win, clock):
+    def __init__(self, win, clock, *args):
+        # *args are the sprites
+        # 0 is for taz
         self.win = win
         self.clock = clock
-        self.scenes['game'] = GameScene(win,clock, self.scene_changer_fac)
-        self.scenes['menu'] = MenuScene(win,clock, self.scene_changer_fac)
-        self.scene = self.scenes['menu']
+        self.scenes['game'] = GameScene(
+            win, clock, self.scene_changer_fac, args[0])
+        self.scenes['menu'] = MenuScene(win, clock, self.scene_changer_fac)
+        self.scene = self.scenes['game']
 
     def loop(self):
         while True:
-            
+
             self.clock.tick(max_fps)
             self.scene.loop()
 
@@ -211,17 +232,20 @@ class Game:
             scene = self.scene
             scenes = self.scenes
             scene = scenes[name]
-        return scene_changer(name) 
+        return scene_changer(name)
 
     def test(self):
         self.scene = self.scenes['game']
 
+
 class MenuScene:
 
     buttons = {}
-    def __init__(self, win, clock, scene_changer_fac):
+
+    def __init__(self, win, clock, scene_changer_fac, **args):
         change_to_game_scene = scene_changer_fac('game')
-        play_button = Button(win, 'Play', pygame.font.SysFont('comicsans', 30, True), change_to_game_scene)
+        play_button = Button(win, 'Play', pygame.font.SysFont(
+            'comicsans', 30, True), change_to_game_scene)
         self.buttons['game'] = play_button
         self.choose_button('game')
 
@@ -229,7 +253,7 @@ class MenuScene:
         self.button = self.buttons[name]
         self.highlight(name)
 
-    def highlight(self,name):
+    def highlight(self, name):
         for key in self.buttons:
             self.buttons[key].highlight = False
         self.buttons[name].highlight = True
@@ -275,12 +299,12 @@ class GameScene:
     mixed_type_chance = [0, mixed_obstacle_chance]
     # mixed_type_chance = [sum(mixed_type_chance[:i]) for i in range(len(mixed_type_chance))]
 
-    def __init__(self, win, clock, scene_changer):
+    def __init__(self, win, clock, scene_changer, *args):
         self.win = win
         self.clock = clock
         # (font, size, bold, italicized)
         self.font = pygame.font.SysFont('comicsans', 30, True)
-        self.taz = Taz(win, clock)
+        self.taz = Taz(win, clock, args[0])
         self.reset()
 
     def reset(self):
@@ -295,20 +319,20 @@ class GameScene:
                              (self.max_x, self.line_min_y + i * self.line_height))
 
     def loop(self):
-            self.event_time_elapsed += self.clock.get_time()
-            self.win.fill((0, 0, 0))
+        self.event_time_elapsed += self.clock.get_time()
+        self.win.fill((0, 0, 0))
 
-            self.events()  # keys handling
-            self.spawn()  # Movable spawning
+        self.events()  # keys handling
+        self.spawn()  # Movable spawning
 
-            # Score
-            score = self.font.render(str(self.taz.score), True, (255, 255, 255))
-            self.win.blit(score, (0, 0))
+        # Score
+        score = self.font.render(str(self.taz.score), True, (255, 255, 255))
+        self.win.blit(score, (0, 0))
 
-            self.loop_rewards()
-            self.loop_obstacles()
-            self.taz.loop()
-            self.draw()  # Platforms draw
+        self.loop_rewards()
+        self.loop_obstacles()
+        self.taz.loop()
+        self.draw()  # Platforms draw
 
     def spawn(self):
         if not self.taz.running:
@@ -376,7 +400,7 @@ class GameScene:
 
 class Button:
 
-    def __init__(self, win, text, font = pygame.font.SysFont('comicsans', 30, True), function=None, highlight = False, x = win_width/4, y = 50, width = win_width/2, height = 50, text_color = (255, 255, 255), color = (0, 9, 151), high_text_color = (255, 255, 255), high_color = (100,100,100)):
+    def __init__(self, win, text, font=pygame.font.SysFont('comicsans', 30, True), function=None, highlight=False, x=win_width/4, y=50, width=win_width/2, height=50, text_color=(255, 255, 255), color=(0, 9, 151), high_text_color=(255, 255, 255), high_color=(100, 100, 100)):
         self.win = win
         self.function = function
         self.highlight = highlight
@@ -386,7 +410,8 @@ class Button:
         self.height = height
         self.color = color
         self.high_color = high_color
-        self.highlight_text, self.lowlight_text, self.text_width, self.text_height = self.render(text, font, high_text_color, text_color)
+        self.highlight_text, self.lowlight_text, self.text_width, self.text_height = self.render(
+            text, font, high_text_color, text_color)
 
     def render(self, text, font, high_text_color, text_color):
         if font:
@@ -398,7 +423,8 @@ class Button:
 
     def draw(self):
 
-        text_x, text_y = self.x + self.width/2 - self.text_width/2, self.y + self.height/2 - self.text_height/2
+        text_x, text_y = self.x + self.width/2 - self.text_width / \
+            2, self.y + self.height/2 - self.text_height/2
         if self.highlight:
             color = self.high_color
             text = self.highlight_text
@@ -406,13 +432,15 @@ class Button:
             color = self.color
             text = self.lowlight_text
 
-        pygame.draw.rect(self.win, color, ((self.x, self.y), (self.width, self.height)))
+        pygame.draw.rect(self.win, color, ((self.x, self.y),
+                                           (self.width, self.height)))
         win.blit(text, (text_x, text_y))
 
     def select(self):
         self.function()
 
-win, clock = init()
-game = Game(win,clock)
+
+win, clock, sprites_taz = init()
+game = Game(win, clock, sprites_taz)
 game.loop()
 pygame.quit()
