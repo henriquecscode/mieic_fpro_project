@@ -35,9 +35,9 @@ https://github.com/henriquecscode/mieic_fpro_project/blob/master/ui.PNG
 6. Remover jogador com objetos de eliminação (100%)
 7. Parar jogo depois de jogador morrer (100%)
 8. Reiniciar jogo (100%)
-9. Adicionar imagens
+9. Adicionar imagens (33%)
 10. UI
 11. Aplicar um algoritmo de deep learning como forma alternativa de controlar o objeto
+12. BUG Todos os obstaculos podem vir do mesmo sentido, em cujo caso o jogador nao se consegue esquivar
 
-
-### #20/11/2019
+### #04/12/2019
