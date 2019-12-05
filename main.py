@@ -210,7 +210,7 @@ class Game:
         def scene_changer(name):
             scene = self.scene
             scenes = self.scenes
-            scene = scenes[name]
+            self.scene = scenes[name]
         return scene_changer(name) 
 
     def test(self):
@@ -221,6 +221,7 @@ class MenuScene:
     buttons = {}
     def __init__(self, win, clock, scene_changer_fac):
         change_to_game_scene = scene_changer_fac('game')
+        #change_to_game_scene = scene_changer_fac
         play_button = Button(win, 'Play', pygame.font.SysFont('comicsans', 30, True), change_to_game_scene)
         self.buttons['game'] = play_button
         self.choose_button('game')
