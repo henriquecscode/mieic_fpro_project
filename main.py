@@ -352,6 +352,14 @@ class GameScene:
                     x = win_width / 2 + -1 * direction * line_width / 2
                     y = self.min_y + i * self.line_height
 
+                    # To prevent all bombs from coming in the same direction
+                    # Probably a slow implementation but should not affect performance too much
+                    if i == self.lines_number - 1:
+                        list_directions = list(map(lambda x: x.direction, self.obstacles[-self.lines_number+1:]))
+                        if len(list(filter(lambda x: x == list_directions[0], list_directions))) == len(list_directions):
+                            #Means that al directions are equal 
+                            direction = direction if direction == self.obstacles[-1].direction else -direction # Changes the direction if it is the same as all others
+
                     self.obstacles.append(Obstacle(self.win, x, y, self.sprites_obstacle, direction))
 
             elif self.type_chance[1] < rand <= self.type_chance[2]:
