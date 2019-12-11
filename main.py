@@ -142,6 +142,9 @@ class Taz:
     width = 40
     height = 50
     color = (255, 0, 0)
+    font=pygame.font.SysFont('comicsans', 30, True)
+    text = font.render('Game Over', True, (255, 255, 255))
+    text_width, text_height = font.size('Game Over')
 
     # So it doesn't automatically jump lines
     up_thres = 10
@@ -197,6 +200,9 @@ class Taz:
     def loop(self):
         if self.running:
             self.draw()
+
+        else:
+            self.win.blit(self.text, ((win_width-self.text_width)/2, (win_height-self.text_height)/2))
 
 
 class Game:
