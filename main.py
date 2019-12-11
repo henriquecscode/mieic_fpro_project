@@ -9,14 +9,17 @@ def rescale_sprites(sprites, width, height):
         return pygame.transform.scale(sprite, (width, height))
     return [rescale_sprite(x, width, height) for x in sprites]
 
+
 def init():
     win = pygame.display.set_mode((win_width, win_height))
     pygame.display.set_caption("TAZ")
     clock = pygame.time.Clock()
     spritesheet_taz = Spritesheet('assets/taz.png')
     sprites_taz = spritesheet_taz.load_strip(((516, 338, 388/6, 90)), 6, -1)
-    sprites_obstacle = Spritesheet('assets/props.png').image_at((126, 70, 30, 30), -1)
-    sprites_reward = Spritesheet('assets/props.png').image_at((162, 5, 30, 30), -1)
+    sprites_obstacle = Spritesheet(
+        'assets/props.png').image_at((126, 70, 30, 30), -1)
+    sprites_reward = Spritesheet(
+        'assets/props.png').image_at((162, 5, 30, 30), -1)
 
     return win, clock, [sprites_taz, sprites_obstacle, sprites_reward]
 
@@ -79,7 +82,8 @@ class Movable:
         # If the return value is true we can delete the object
 
     def draw(self):
-        self.win.blit(self.sprite, (self.x - self.width/2, self.y - self.height/2))
+        self.win.blit(self.sprite, (self.x - self.width /
+                      2, self.y - self.height/2))
 
     def collision(self, collide):
 
@@ -115,71 +119,109 @@ class Obstacle(Movable):
         return not_of_bounds and not_hit
 
 
+class PointProp:
+    color = (255, 255, 0)
+    font = pygame.font.SysFont('comicsans', 30, True)
+    text = font.render('50', True, (255, 255, 0))
+    fade_vel = 1
+
+    def __init__(self, win, x, y):
+        self.alpha = 255
+        self.win = win
+        self.x = x
+        self.y = y
+
+    def draw(self):
+        alpha_img = pygame.Surface(self.text.get_rect().size, self.alpha)
+        self.win.blit(alpha_img, (self.x, self.y), special_flags = pygame.BLEND_RGB_MULT)
+
+        '''
+        txt_surf = font.render('translucent text', True, pg.Color('seagreen1'))
+    alpha_img = pg.Surface(txt_surf.get_rect().size, pg.SRCALPHA)
+    alpha_img.fill((255, 255, 255, 90))
+    txt_surf.blit(alpha_img, (0, 0), special_flags=pg.BLEND_RGBA_MULT)
+
+        surface = pygame.Surface((100, 30))
+        surface.fill((255, 255, 255))
+        surface.blit(textsurface, pygame.Rect(0, 0, 10, 10), special_flags=pygame.BLEND_RGBA_MULT)
+        surface.set_alpha(50)
+        self.win.blit(self.surface, pygame.Rect(0, 30, 10, 10))
+        win.blit(self.text, (self.x, self.y)))
+    '''
+
+    def loop(self):
+        self.draw()
+        self.alpha -= self.fade_vel
+        if self.alpha <= 0:
+            return False
+        return True
+
+
 class Reward(Movable):
 
-    color = (255, 255, 0)
-    score = 50
+    color=(255, 255, 0)
+    score=50
 
-    def __init__(self, win, x, y, sprite, direction, difficulty=1):
+    def __init__(self, win, x, y, sprite, direction, difficulty = 1):
         super().__init__(win, x, y, self.color, sprite, direction, difficulty)
 
     def loop(self, collide):
-        not_of_bounds, not_hit = super().loop(collide)
+        not_of_bounds, not_hit=super().loop(collide)
         if not not_hit:
             collide.score += self.score
         return not_of_bounds and not_hit
 
 
 class Taz:
-    min_x = win_width / 2 - line_width / 2
-    max_x = win_width / 2 + line_width / 2
-    min_y = win_height / 2 - line_total_height / 2
-    max_y = win_height / 2 + line_total_height / 2
+    min_x=win_width / 2 - line_width / 2
+    max_x=win_width / 2 + line_width / 2
+    min_y=win_height / 2 - line_total_height / 2
+    max_y=win_height / 2 + line_total_height / 2
 
-    line_height = line_height
+    line_height=line_height
 
-    velocity = 10
-    width = 40
-    height = 50
-    color = (255, 0, 0)
+    velocity=10
+    width=40
+    height=50
+    color=(255, 0, 0)
     font=pygame.font.SysFont('comicsans', 30, True)
-    text = font.render('Game Over', True, (255, 255, 255))
-    text_width, text_height = font.size('Game Over')
+    text=font.render('Game Over', True, (255, 255, 255))
+    text_width, text_height=font.size('Game Over')
 
     # So it doesn't automatically jump lines
-    up_thres = 10
-    down_thres = 10
+    up_thres=10
+    down_thres=10
 
-    tick_per_sprites = 3
+    tick_per_sprites=3
 
     def __init__(self, win, clock, sprites):
-        self.win = win
-        self.clock = clock
+        self.win=win
+        self.clock=clock
         self.reset()
-        self.sprites = rescale_sprites(sprites, self.width, self.height)
-        self.sprites_count = 0
+        self.sprites=rescale_sprites(sprites, self.width, self.height)
+        self.sprites_count=0
 
     def reset(self):
-        self.x = win_width / 2
-        self.y = win_height / 2
-        self.up_request = 0
-        self.down_request = 0
-        self.running = True
-        self.score = 0
+        self.x=win_width / 2
+        self.y=win_height / 2
+        self.up_request=0
+        self.down_request=0
+        self.running=True
+        self.score=0
 
     def move_up(self):
         self.up_request += 1
-        self.down_request = 0
+        self.down_request=0
         if self.up_request >= self.up_thres:
-            self.up_request = 0
+            self.up_request=0
             if self.y - self.line_height >= self.min_y:
                 self.y -= self.line_height
 
     def move_down(self):
         self.down_request += 1
-        self.up_request = 0
+        self.up_request=0
         if self.down_request >= self.down_thres:
-            self.down_request = 0
+            self.down_request=0
             if self.y + self.line_height < self.max_y:
                 self.y += self.line_height
 
@@ -194,7 +236,7 @@ class Taz:
     def draw(self):
         self.win.blit(self.sprites[self.sprites_count //
                               self.tick_per_sprites], (self.x - self.width/2, self.y - self.height/2))
-        self.sprites_count = (self.sprites_count +
+        self.sprites_count=(self.sprites_count +
                               1) % (len(self.sprites) * self.tick_per_sprites)
 
     def loop(self):
@@ -202,24 +244,25 @@ class Taz:
             self.draw()
 
         else:
-            self.win.blit(self.text, ((win_width-self.text_width)/2, (win_height-self.text_height)/2))
+            self.win.blit(self.text, ((win_width-self.text_width) /
+                          2, (win_height-self.text_height)/2))
 
 
 class Game:
-    scenes = {}
-    scene = None
-    #scenes = {'game': None, 'menu': None }
+    scenes={}
+    scene=None
+    # scenes = {'game': None, 'menu': None }
 
     def __init__(self, win, clock, *args):
         # *args are the sprites
         # 0 is for taz
-        self.win = win
-        self.clock = clock
-        self.scenes['game'] = GameScene(win,clock, *args)
+        self.win=win
+        self.clock=clock
+        self.scenes['game']=GameScene(win, clock, *args)
         def to_game():
-            self.scene = self.scenes['game']
-        self.scenes['menu'] = MenuScene(win,clock, to_game = to_game)
-        self.scene = self.scenes['menu']
+            self.scene=self.scenes['game']
+        self.scenes['menu']=MenuScene(win, clock, to_game = to_game)
+        self.scene=self.scenes['menu']
 
     def loop(self):
         while True:
@@ -237,20 +280,21 @@ class Game:
 
 class MenuScene:
 
-    buttons = {}
+    buttons={}
     def __init__(self, win, clock, **kargs):
-        play_button = Button(win, 'Play', pygame.font.SysFont('comicsans', 30, True), kargs['to_game'])
-        self.buttons['game'] = play_button
+        play_button=Button(win, 'Play', pygame.font.SysFont(
+            'comicsans', 30, True), kargs['to_game'])
+        self.buttons['game']=play_button
         self.choose_button('game')
 
     def choose_button(self, name):
-        self.button = self.buttons[name]
+        self.button=self.buttons[name]
         self.highlight(name)
 
     def highlight(self, name):
         for key in self.buttons:
-            self.buttons[key].highlight = False
-        self.buttons[name].highlight = True
+            self.buttons[key].highlight=False
+        self.buttons[name].highlight=True
 
     def loop(self):
 
@@ -261,32 +305,32 @@ class MenuScene:
 
     def events(self):
 
-        keys = pygame.key.get_pressed()
+        keys=pygame.key.get_pressed()
         if keys[pygame.K_RETURN] or keys[pygame.K_SPACE]:
             self.button.select()
 
 
 class GameScene:
 
-    lines_number = line_total_height // line_height
-    min_x = win_width / 2 - line_width / 2 - 20
-    max_x = win_width / 2 + line_width / 2 + 20
-    min_y = win_height / 2 - line_total_height / 2
-    line_min_y = min_y + 16
-    line_height = line_height
+    lines_number=line_total_height // line_height
+    min_x=win_width / 2 - line_width / 2 - 20
+    max_x=win_width / 2 + line_width / 2 + 20
+    min_y=win_height / 2 - line_total_height / 2
+    line_min_y=min_y + 16
+    line_height=line_height
 
-    color = (255, 0, 0)
+    color=(255, 0, 0)
 
     # Deal with spawning of movable objects
-    event_timer = 4000
-    event_time_elapsed = 3000
-    obstacle_only_chance = 0.2
-    reward_only_chance = 0.6
-    mixed_chance = 0.2
-    type_chance = [obstacle_only_chance, reward_only_chance, mixed_chance]
-    type_chance = [0, obstacle_only_chance,
+    event_timer=4000
+    event_time_elapsed=3000
+    obstacle_only_chance=0.2
+    reward_only_chance=0.6
+    mixed_chance=0.2
+    type_chance=[obstacle_only_chance, reward_only_chance, mixed_chance]
+    type_chance=[0, obstacle_only_chance,
                    obstacle_only_chance + reward_only_chance]  # Temporary
-    #type_chance = [type_chance[:i] for i in range(len(type_chance)) ]
+    # type_chance = [type_chance[:i] for i in range(len(type_chance)) ]
     mixed_obstacle_chance = 0.5
     mixed_reward_chance = 0.5
     mixed_type_chance = [mixed_obstacle_chance, mixed_reward_chance]
@@ -305,6 +349,7 @@ class GameScene:
     def reset(self):
         self.obstacles = []
         self.rewards = []
+        self.props = []
         self.event_time_elapsed = 3000
         self.taz.reset()
 
@@ -326,6 +371,7 @@ class GameScene:
 
         self.loop_rewards()
         self.loop_obstacles()
+        self.loop_props()
         self.taz.loop()
         self.draw()  # Platforms draw
 
@@ -342,10 +388,10 @@ class GameScene:
 
                     # To prevent all bombs from coming in the same direction
                     # Probably a slow implementation but should not affect performance too much
-                    if i == self.lines_number - 1:
+                    if i == (self.lines_number - 1):
                         list_directions = list(map(lambda x: x.direction, self.obstacles[-self.lines_number+1:]))
                         if len(list(filter(lambda x: x == list_directions[0], list_directions))) == len(list_directions):
-                            #Means that al directions are equal 
+                            # Means that al directions are equal 
                             direction = direction if direction == self.obstacles[-1].direction else -direction # Changes the direction if it is the same as all others
 
                     self.create_obstacle(i, direction)
@@ -385,12 +431,20 @@ class GameScene:
 
     # Could probably join these two, semantically it is cleaner this way though
     def loop_rewards(self):
-        self.rewards = [x for x in self.rewards if x.loop(self.taz)]
-        # The else clause needs to be another type of objects that disappears after a certain time, to replicate the original game
+        new_rewards = []
+        for reward in self.rewards:
+            if reward.loop(self.taz):
+                new_rewards.append(reward)
+            else:
+                self.props.append(PointProp(self.win, reward.x, reward.y))
+        self.rewards = new_rewards
 
     def loop_obstacles(self):
         self.obstacles = [x for x in self.obstacles if x.loop(self.taz)]
         # Simultaneously draws, moves and deletes the object if need be
+
+    def loop_props(self):
+        self.props = [x for x in self.props if x.loop()]
 
     def create_reward(self, y, direction):
         x = win_width / 2 + -1 * direction * line_width / 2
