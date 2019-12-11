@@ -339,8 +339,6 @@ class GameScene:
                 # We are going to have obstacle only
                 for i in range(self.lines_number):
                     direction = -1 if random.random() < 0.5 else 1
-                    x = win_width / 2 + -1 * direction * line_width / 2
-                    y = self.min_y + i * self.line_height
 
                     # To prevent all bombs from coming in the same direction
                     # Probably a slow implementation but should not affect performance too much
@@ -350,28 +348,22 @@ class GameScene:
                             #Means that al directions are equal 
                             direction = direction if direction == self.obstacles[-1].direction else -direction # Changes the direction if it is the same as all others
 
-                    self.obstacles.append(Obstacle(self.win, x, y, self.sprites_obstacle, direction))
+                    self.create_obstacle(i, direction)
 
             elif self.type_chance[1] < rand <= self.type_chance[2]:
                 # We are going to have reward only
                 for i in range(self.lines_number):
                     direction = -1 if random.random() < 0.5 else 1
-                    x = win_width / 2 + -1 * direction * line_width / 2
-                    y = self.min_y + i * self.line_height
-
-                    self.rewards.append(Reward(self.win, x, y, self.sprites_reward, direction))
+                    self.create_reward(i, direction)
 
             else:
                 for i in range(self.lines_number):
                     direction = -1 if random.random() < 0.5 else 1
-                    x = win_width / 2 + -1 * direction * line_width / 2
-                    y = self.min_y + i * self.line_height
                     rand = random.random()
                     if rand < self.mixed_obstacle_chance:
-                        self.obstacles.append(
-                            Obstacle(self.win, x, y, self.sprites_obstacle, direction))
+                        self.create_obstacle(i, direction)
                     else:
-                        self.rewards.append(Reward(self.win, x, y, self.sprites_reward, direction))
+                        self.create_obstacle(i, direction)
                 # We are going to have mixed
             self.event_time_elapsed = 0
 
@@ -399,6 +391,16 @@ class GameScene:
     def loop_obstacles(self):
         self.obstacles = [x for x in self.obstacles if x.loop(self.taz)]
         # Simultaneously draws, moves and deletes the object if need be
+
+    def create_reward(self, y, direction):
+        x = win_width / 2 + -1 * direction * line_width / 2
+        y = self.min_y + y * self.line_height
+        self.rewards.append(Reward(self.win, x, y, self.sprites_reward, direction))
+
+    def create_obstacle(self, y, direction):
+        x = win_width / 2 + -1 * direction * line_width / 2
+        y = self.min_y + y * self.line_height
+        self.rewards.append(Obstacle(self.win, x, y, self.sprites_obstacle, direction))
 
 
 class Button:
