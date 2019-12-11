@@ -185,8 +185,10 @@ class Game:
     def __init__(self, win, clock):
         self.win = win
         self.clock = clock
-        self.scenes['game'] = GameScene(win,clock, self.scene_changer_fac)
-        self.scenes['menu'] = MenuScene(win,clock, self.scene_changer_fac)
+        self.scenes['game'] = GameScene(win,clock)
+        def to_game():
+            self.scene = self.scenes['game']
+        self.scenes['menu'] = MenuScene(win,clock, to_game = to_game)
         self.scene = self.scenes['menu']
 
     def loop(self):
@@ -194,7 +196,6 @@ class Game:
             
             self.clock.tick(max_fps)
             self.scene.loop()
-
             # Exit condition
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -202,27 +203,12 @@ class Game:
 
             pygame.display.flip()
 
-    def scene_changer_fac(self, name):
-        # This function is not working as it should
-        # Probable reason: Child cannot access the self that is passed in the function defined here so it is set to None
-        # Best solution? Pass self.scenes and self.scene to the child
-        # It is only a reference so it is not that heavy in terms of performance I guess
-        def scene_changer(name):
-            scene = self.scene
-            scenes = self.scenes
-            self.scene = scenes[name]
-        return scene_changer(name) 
-
-    def test(self):
-        self.scene = self.scenes['game']
 
 class MenuScene:
 
     buttons = {}
-    def __init__(self, win, clock, scene_changer_fac):
-        change_to_game_scene = scene_changer_fac('game')
-        #change_to_game_scene = scene_changer_fac
-        play_button = Button(win, 'Play', pygame.font.SysFont('comicsans', 30, True), change_to_game_scene)
+    def __init__(self, win, clock, **kargs):
+        play_button = Button(win, 'Play', pygame.font.SysFont('comicsans', 30, True), kargs['to_game'])
         self.buttons['game'] = play_button
         self.choose_button('game')
 
@@ -276,7 +262,7 @@ class GameScene:
     mixed_type_chance = [0, mixed_obstacle_chance]
     # mixed_type_chance = [sum(mixed_type_chance[:i]) for i in range(len(mixed_type_chance))]
 
-    def __init__(self, win, clock, scene_changer):
+    def __init__(self, win, clock):
         self.win = win
         self.clock = clock
         # (font, size, bold, italicized)
