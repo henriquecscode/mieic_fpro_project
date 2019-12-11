@@ -209,7 +209,7 @@ class Game:
         # 0 is for taz
         self.win = win
         self.clock = clock
-        self.scenes['game'] = GameScene(win,clock)
+        self.scenes['game'] = GameScene(win,clock, *args)
         def to_game():
             self.scene = self.scenes['game']
         self.scenes['menu'] = MenuScene(win,clock, to_game = to_game)
