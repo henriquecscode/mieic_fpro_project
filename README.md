@@ -37,7 +37,5 @@ https://github.com/henriquecscode/mieic_fpro_project/blob/master/ui.PNG
 8. Reiniciar jogo (100%)
 9. Adicionar imagens (100%)
 10. UI
-11. Aplicar um algoritmo de deep learning como forma alternativa de controlar o objeto
-12. BUG Todos os obstaculos podem vir do mesmo sentido, em cujo caso o jogador nao se consegue esquivar
 
-### #04/12/2019
+### #11/12/2019
