@@ -320,8 +320,6 @@ class GameScene:
     reward_only_chance=0.6
     mixed_chance=0.2
     type_chance=[obstacle_only_chance, reward_only_chance, mixed_chance]
-    type_chance=[0, obstacle_only_chance,
-                   obstacle_only_chance + reward_only_chance]  # Temporary
     # type_chance = [type_chance[:i] for i in range(len(type_chance)) ]
     mixed_obstacle_chance = 0.5
     mixed_reward_chance = 0.5
@@ -375,6 +373,7 @@ class GameScene:
             rand = random.random()
             if 0 <= rand <= self.type_chance[1]:
                 # We are going to have obstacle only
+                
                 for i in range(self.lines_number):
                     direction = -1 if random.random() < 0.5 else 1
 
@@ -384,7 +383,7 @@ class GameScene:
                         list_directions = list(map(lambda x: x.direction, self.obstacles[-self.lines_number+1:]))
                         if len(list(filter(lambda x: x == list_directions[0], list_directions))) == len(list_directions):
                             # Means that al directions are equal 
-                            direction = direction if direction == self.obstacles[-1].direction else -direction # Changes the direction if it is the same as all others
+                            direction = -direction if direction == self.obstacles[-1].direction else direction # Changes the direction if it is the same as all others
                     self.create_obstacle(i, direction)
 
             elif self.type_chance[1] < rand <= self.type_chance[2]:
