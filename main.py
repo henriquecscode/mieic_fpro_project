@@ -122,8 +122,8 @@ class Obstacle(Movable):
 class PointProp:
     color = (255, 255, 0)
     font = pygame.font.SysFont('comicsans', 30, True)
-    text = font.render('50', True, (255, 255, 0))
-    fade_vel = 1
+    text = '50'
+    fade_vel = 5
 
     def __init__(self, win, x, y):
         self.alpha = 255
@@ -132,22 +132,14 @@ class PointProp:
         self.y = y
 
     def draw(self):
-        alpha_img = pygame.Surface(self.text.get_rect().size, self.alpha)
-        self.win.blit(alpha_img, (self.x, self.y), special_flags = pygame.BLEND_RGB_MULT)
+        size = self.font.size(self.text)
+        textsurface=self.font.render(self.text, True, (255, 255, 0))
+        surface=pygame.Surface(size)
+        surface.fill((0, 0, 0))
+        surface.blit(textsurface, pygame.Rect(0,0,size[0],size[1]))
+        surface.set_alpha(self.alpha)
+        self.win.blit(surface, pygame.Rect(self.x, self.y, size[0], size[1]))
 
-        '''
-        txt_surf = font.render('translucent text', True, pg.Color('seagreen1'))
-    alpha_img = pg.Surface(txt_surf.get_rect().size, pg.SRCALPHA)
-    alpha_img.fill((255, 255, 255, 90))
-    txt_surf.blit(alpha_img, (0, 0), special_flags=pg.BLEND_RGBA_MULT)
-
-        surface = pygame.Surface((100, 30))
-        surface.fill((255, 255, 255))
-        surface.blit(textsurface, pygame.Rect(0, 0, 10, 10), special_flags=pygame.BLEND_RGBA_MULT)
-        surface.set_alpha(50)
-        self.win.blit(self.surface, pygame.Rect(0, 30, 10, 10))
-        win.blit(self.text, (self.x, self.y)))
-    '''
 
     def loop(self):
         self.draw()
@@ -169,7 +161,7 @@ class Reward(Movable):
         not_of_bounds, not_hit=super().loop(collide)
         if not not_hit:
             collide.score += self.score
-        return not_of_bounds and not_hit
+        return not_of_bounds, not_hit
 
 
 class Taz:
@@ -393,7 +385,6 @@ class GameScene:
                         if len(list(filter(lambda x: x == list_directions[0], list_directions))) == len(list_directions):
                             # Means that al directions are equal 
                             direction = direction if direction == self.obstacles[-1].direction else -direction # Changes the direction if it is the same as all others
-
                     self.create_obstacle(i, direction)
 
             elif self.type_chance[1] < rand <= self.type_chance[2]:
@@ -433,10 +424,11 @@ class GameScene:
     def loop_rewards(self):
         new_rewards = []
         for reward in self.rewards:
-            if reward.loop(self.taz):
+            not_out_bounds, not_hit = reward.loop(self.taz)
+            if not_out_bounds and not_hit:
                 new_rewards.append(reward)
-            else:
-                self.props.append(PointProp(self.win, reward.x, reward.y))
+            if not not_hit:
+                self.props.append(PointProp(self.win, reward.x - reward.width/2, reward.y - reward.height))
         self.rewards = new_rewards
 
     def loop_obstacles(self):
@@ -454,7 +446,7 @@ class GameScene:
     def create_obstacle(self, y, direction):
         x = win_width / 2 + -1 * direction * line_width / 2
         y = self.min_y + y * self.line_height
-        self.rewards.append(Obstacle(self.win, x, y, self.sprites_obstacle, direction))
+        self.obstacles.append(Obstacle(self.win, x, y, self.sprites_obstacle, direction))
 
 
 class Button:
