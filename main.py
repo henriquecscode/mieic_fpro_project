@@ -2,6 +2,7 @@ import pygame
 import random
 from config import win_width, win_height, max_fps, line_height, line_total_height, line_width
 pygame.init()
+dt = 1
 
 
 def rescale_sprites(sprites, width, height):
@@ -77,7 +78,7 @@ class Movable:
         self.difficulty = difficulty
 
     def move(self):
-        self.x += self.direction * self.velocity * self.difficulty ** 0.5
+        self.x += dt * self.direction * self.velocity * self.difficulty ** 0.5
         return not(self.x < self.min_x or self.x > self.max_x)
         # If the return value is true we can delete the object
 
@@ -219,11 +220,11 @@ class Taz:
 
     def move_left(self):
         if self.x - self.velocity >= self.min_x:
-            self.x -= self.velocity
+            self.x -= dt * self.velocity
 
     def move_right(self):
         if self.x + self.velocity <= self.max_x:
-            self.x += self.velocity
+            self.x += dt * self.velocity
 
     def draw(self):
         self.win.blit(self.sprites[self.sprites_count //
@@ -259,7 +260,7 @@ class Game:
     def loop(self):
         while True:
 
-            self.clock.tick(max_fps)
+            dt = self.clock.tick(max_fps)
             self.scene.loop()
             # Exit condition
             for event in pygame.event.get():
@@ -319,13 +320,12 @@ class GameScene:
     obstacle_only_chance=0.2
     reward_only_chance=0.6
     mixed_chance=0.2
-    type_chance=[obstacle_only_chance, reward_only_chance, mixed_chance]
-    # type_chance = [type_chance[:i] for i in range(len(type_chance)) ]
+    assert obstacle_only_chance + reward_only_chance + mixed_chance == 1
+    type_chance=[obstacle_only_chance, reward_only_chance + obstacle_only_chance, obstacle_only_chance + reward_only_chance + mixed_chance]
     mixed_obstacle_chance = 0.5
     mixed_reward_chance = 0.5
-    mixed_type_chance = [mixed_obstacle_chance, mixed_reward_chance]
-    mixed_type_chance = [0, mixed_obstacle_chance]
-    # mixed_type_chance = [sum(mixed_type_chance[:i]) for i in range(len(mixed_type_chance))]
+    assert mixed_obstacle_chance + mixed_reward_chance == 1
+    mixed_type_chance = [mixed_obstacle_chance, mixed_obstacle_chance + mixed_reward_chance]
 
     def __init__(self, win, clock, *args):
         self.win = win
@@ -371,7 +371,7 @@ class GameScene:
         if self.event_time_elapsed > self.event_timer:
             # We are going to create a event
             rand = random.random()
-            if 0 <= rand <= self.type_chance[1]:
+            if 0 <= rand <= self.type_chance[0]:
                 # We are going to have obstacle only
                 
                 for i in range(self.lines_number):
@@ -386,7 +386,7 @@ class GameScene:
                             direction = -direction if direction == self.obstacles[-1].direction else direction # Changes the direction if it is the same as all others
                     self.create_obstacle(i, direction)
 
-            elif self.type_chance[1] < rand <= self.type_chance[2]:
+            elif self.type_chance[0] < rand <= self.type_chance[1]:
                 # We are going to have reward only
                 for i in range(self.lines_number):
                     direction = -1 if random.random() < 0.5 else 1
@@ -399,7 +399,7 @@ class GameScene:
                     if rand < self.mixed_obstacle_chance:
                         self.create_obstacle(i, direction)
                     else:
-                        self.create_obstacle(i, direction)
+                        self.create_reward(i, direction)
                 # We are going to have mixed
             self.event_time_elapsed = 0
 
