@@ -237,8 +237,14 @@ class Taz:
             self.draw()
 
         else:
+            score_str = f'Your score was: {str(self.score)}'
+            score = self.font.render(score_str, True, (255, 255, 255))
+            score_width, score_height = self.font.size((score_str))
+            
+            self.win.blit(score, ((win_width - score_width) / 2, (win_height - score_height)/2 + 50))
             self.win.blit(self.text, ((win_width-self.text_width) /
                           2, (win_height-self.text_height)/2))
+
 
 
 class Game:
